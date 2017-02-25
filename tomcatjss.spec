@@ -1,6 +1,6 @@
 Name:     tomcatjss
-Version:  7.1.4
-Release:  1%{?dist}
+Version:  7.1.3
+Release:  3%{?dist}
 Summary:  JSSE implementation using JSS for Tomcat
 URL:      http://pki.fedoraproject.org/
 License:  LGPLv2+
@@ -91,7 +91,7 @@ rm -rf %{buildroot}
 %{_javadir}/*
 
 %changelog
-* Tue Jul 5 2016 Christina Fu <cfu@redhat.com> 7.1.4.1
+* Tue Jul 5 2016 Christina Fu <cfu@redhat.com> 7.1.3.3
 - Bugzilla Bug #1203407 missing ciphers (cfu)
 
 * Fri Feb 05 2016 Fedora Release Engineering <releng@fedoraproject.org> 7.1.3-2

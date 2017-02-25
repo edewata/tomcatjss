@@ -49,6 +49,7 @@ class JSSSupport implements SSLSupport {
         // the client certificate which may not be available
         // at the creation of JSSSupport
         status = ssl.getStatus();
+        System.err.println("JSSSupport.getPeerCertificateChain(): entering.");
         if (status != null) {
             org.mozilla.jss.crypto.X509Certificate peerCert = status
                     .getPeerCertificate();
@@ -56,9 +57,12 @@ class JSSSupport implements SSLSupport {
             if (peerCert == null) {
                 ssl.requireClientAuth(SSLSocket.SSL_REQUIRE_NO_ERROR);
                 try {
+                	System.err.println("redoHandshake");
                     ssl.redoHandshake();
+                	System.err.println("forceHandshake");
                     ssl.forceHandshake();
                 } catch (Exception e) {
+                	e.printStackTrace();
                 }
                 status = ssl.getStatus();
                 peerCert = status.getPeerCertificate();
@@ -73,6 +77,7 @@ class JSSSupport implements SSLSupport {
                     ByteArrayInputStream stream = new ByteArrayInputStream(b);
                     certs[0] = (X509Certificate) cf.generateCertificate(stream);
                 } catch (Exception e) {
+                	e.printStackTrace();
                 }
                 return certs;
             }

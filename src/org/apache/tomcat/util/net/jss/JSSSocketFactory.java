@@ -51,14 +51,19 @@ import org.mozilla.jss.NoSuchTokenException;
 import org.mozilla.jss.crypto.AlreadyInitializedException;
 import org.mozilla.jss.crypto.CryptoToken;
 import org.mozilla.jss.crypto.TokenException;
+import org.mozilla.jss.ssl.BadCertificateEvent;
+import org.mozilla.jss.ssl.SSLHandshakeCompletedEvent;
+import org.mozilla.jss.ssl.SSLSecurityStatus;
 import org.mozilla.jss.ssl.SSLServerSocket;
 import org.mozilla.jss.ssl.SSLSocket;
+import org.mozilla.jss.ssl.SSLSocketListener;
 import org.mozilla.jss.util.IncorrectPasswordException;
 import org.mozilla.jss.util.Password;
 
 public class JSSSocketFactory implements
         org.apache.tomcat.util.net.ServerSocketFactory,
-        org.apache.tomcat.util.net.SSLUtil {
+        org.apache.tomcat.util.net.SSLUtil,
+        SSLSocketListener {
 
     private static HashMap<String, Integer> cipherMap = new HashMap<String, Integer>();
     static {
@@ -805,6 +810,9 @@ public class JSSSocketFactory implements
                 debugWrite("SSSocketFactory init - after setSSLOptions()\n");
             }
 
+            String csLoggingHook = getEndpointAttribute("csLoggingHook");
+            System.err.println("csLoggingHook: " + csLoggingHook);
+
         } catch (Exception ex) {
             debugWrite("JSSSocketFactory init - exception thrown:"
                     + ex.toString() + "\n");
@@ -921,8 +929,11 @@ public class JSSSocketFactory implements
 
     public Socket acceptSocket(ServerSocket socket) throws IOException {
         SSLSocket asock = null;
+
         try {
             asock = (SSLSocket) socket.accept();
+            asock.addSocketListener(this);
+
             if (wantClientAuth || requireClientAuth) {
                 asock.requestClientAuth(true);
                 if (requireClientAuth == true) {
@@ -931,14 +942,17 @@ public class JSSSocketFactory implements
                     asock.requireClientAuth(SSLSocket.SSL_REQUIRE_NEVER);
                 }
             }
+
         } catch (Exception e) {
-            throw new SocketException("SSL handshake error " + e.toString());
+            throw new IOException("Unable to accept socket: " + e, e);
         }
 
         return asock;
     }
 
     public void handshake(Socket sock) throws IOException {
+        System.err.println("handshake: socket: " + sock);
+        //Thread.dumpStack();
         // ((SSLSocket)sock).forceHandshake();
     }
 
@@ -959,13 +973,13 @@ public class JSSSocketFactory implements
             InetAddress ifAddress, boolean reuseAddr) throws IOException {
         if (!initialized)
             init();
-        SSLServerSocket socket = null;
-        socket = new SSLServerSocket(port, backlog, ifAddress, null, reuseAddr);
+        SSLServerSocket socket = new SSLServerSocket(port, backlog, ifAddress, null, reuseAddr);
         initializeSocket(socket);
         return socket;
     }
 
     private void initializeSocket(SSLServerSocket s) {
+        System.err.println("initializeSocket: begin ");
         try {
             /*
              * Timeout's should not be enabled by default. Upper layers will
@@ -981,7 +995,9 @@ public class JSSSocketFactory implements
                 }
             }
             s.setServerCertNickname(serverCertNick);
+            System.err.println("initializeSocket: end");
         } catch (Exception e) {
+        	e.printStackTrace();
         }
     }
 
@@ -1009,5 +1025,30 @@ public class JSSSocketFactory implements
 
     public String[] getEnableableProtocols(SSLContext context) {
         return null;
+    }
+
+    @Override
+    public void badCertificateReceived(BadCertificateEvent event) {
+        try {
+            SSLSocket socket = event.getSocket();
+            SSLSecurityStatus status = socket.getStatus();
+            System.err.println("handleBadCert: code: " + event.getCode());
+            System.err.println("handleBadCert: status: " + status);
+            System.err.println("handleBadCert: cert: " + status.getPeerCertificate().getSubjectDN());
+        } catch (SocketException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void handshakeCompleted(SSLHandshakeCompletedEvent event) {
+        try {
+            SSLSecurityStatus status = event.getStatus();
+            System.err.println("handshakeCompleted: status: " + status);
+            System.err.println("handshakeCompleted: cert: " + status.getPeerCertificate().getSubjectDN());
+
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
