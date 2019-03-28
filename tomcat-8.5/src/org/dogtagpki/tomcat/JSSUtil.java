@@ -23,7 +23,6 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 
 import org.apache.tomcat.util.net.SSLHostConfigCertificate;
-import org.apache.tomcat.util.net.jsse.JSSEKeyManager;
 import org.apache.tomcat.util.net.jsse.JSSEUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +40,7 @@ public class JSSUtil extends JSSEUtil {
     public KeyManager[] getKeyManagers() throws Exception {
         logger.debug("JSSUtil: getKeyManagers()");
         String keyAlias = certificate.getCertificateKeyAlias();
-        KeyManager keyManager = new JSSEKeyManager(new JSSKeyManager(), keyAlias);
-        return new KeyManager[] { keyManager };
+        return new KeyManager[] { new JSSKeyManager(keyAlias) };
     }
 
     @Override

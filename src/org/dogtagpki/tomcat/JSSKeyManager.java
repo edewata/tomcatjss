@@ -26,18 +26,27 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.X509ExtendedKeyManager;
 
 import org.mozilla.jss.CryptoManager;
 import org.mozilla.jss.crypto.ObjectNotFoundException;
+import org.mozilla.jss.netscape.security.util.Utils;
+import org.mozilla.jss.pkcs11.PK11PrivKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import sun.security.x509.X509CertImpl;
 
-public class JSSKeyManager implements X509KeyManager {
+public class JSSKeyManager extends X509ExtendedKeyManager {
 
     final static Logger logger = LoggerFactory.getLogger(JSSKeyManager.class);
+
+    String serverAlias;
+
+    public JSSKeyManager(String alias) {
+        this.serverAlias = alias;
+    }
 
     @Override
     public String chooseClientAlias(String[] keyTypes, Principal[] issuers, Socket socket) {
@@ -48,9 +57,11 @@ public class JSSKeyManager implements X509KeyManager {
             logger.debug("JSSKeyManager: - " + keyType);
         }
 
-        logger.debug("JSSKeyManager: issuers:");
-        for (Principal issuer : issuers) {
-            logger.debug("JSSKeyManager: - " + issuer.getName());
+        if (issuers != null) {
+            logger.debug("JSSKeyManager: issuers:");
+            for (Principal issuer : issuers) {
+                logger.debug("JSSKeyManager: - " + issuer.getName());
+            }
         }
 
         return null;  // not implemented
@@ -61,12 +72,29 @@ public class JSSKeyManager implements X509KeyManager {
         logger.debug("JSSKeyManager: chooseServerAlias()");
         logger.debug("JSSKeyManager: key type: " + keyType);
 
-        logger.debug("JSSKeyManager: issuers:");
-        for (Principal issuer : issuers) {
-            logger.debug("JSSKeyManager: - " + issuer.getName());
+        if (issuers != null) {
+            logger.debug("JSSKeyManager: issuers:");
+            for (Principal issuer : issuers) {
+                logger.debug("JSSKeyManager: - " + issuer.getName());
+            }
         }
 
-        return null;  // not implemented
+        return serverAlias;
+    }
+
+    @Override
+    public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine engine) {
+        logger.debug("JSSKeyManager: chooseEngineServerAlias()");
+        logger.debug("JSSKeyManager: key type: " + keyType);
+
+        if (issuers != null) {
+            logger.debug("JSSKeyManager: issuers:");
+            for (Principal issuer : issuers) {
+                logger.debug("JSSKeyManager: - " + issuer.getName());
+            }
+        }
+
+        return serverAlias;
     }
 
     @Override
@@ -100,9 +128,11 @@ public class JSSKeyManager implements X509KeyManager {
         logger.debug("JSSKeyManager: getClientAliases()");
         logger.debug("JSSKeyManager: key type: " + keyType);
 
-        logger.debug("JSSKeyManager: issuers:");
-        for (Principal issuer : issuers) {
-            logger.debug("JSSKeyManager: - " + issuer.getName());
+        if (issuers != null) {
+            logger.debug("JSSKeyManager: issuers:");
+            for (Principal issuer : issuers) {
+                logger.debug("JSSKeyManager: - " + issuer.getName());
+            }
         }
 
         return null;  // not implemented
@@ -118,7 +148,15 @@ public class JSSKeyManager implements X509KeyManager {
             org.mozilla.jss.crypto.X509Certificate cert = cm.findCertByNickname(alias);
             PrivateKey privateKey = cm.findPrivKeyByCert(cert);
 
-            logger.debug("JSSKeyManager: key found: " + alias);
+            logger.debug("JSSKeyManager: class: " + privateKey.getClass().getName());
+
+            if (privateKey instanceof PK11PrivKey) {
+                PK11PrivKey pk11PrivKey = (PK11PrivKey) privateKey;
+
+                String keyID = Utils.HexEncode(pk11PrivKey.getUniqueID());
+                logger.debug("JSSKeyManager: key ID: " + keyID);
+            }
+
             return privateKey;
 
         } catch (ObjectNotFoundException e) {
@@ -136,11 +174,13 @@ public class JSSKeyManager implements X509KeyManager {
         logger.debug("JSSKeyManager: getServerAliases()");
         logger.debug("JSSKeyManager: key type: " + keyType);
 
-        logger.debug("JSSKeyManager: issuers:");
-        for (Principal issuer : issuers) {
-            logger.debug("JSSKeyManager: - " + issuer.getName());
+        if (issuers != null) {
+            logger.debug("JSSKeyManager: issuers:");
+            for (Principal issuer : issuers) {
+                logger.debug("JSSKeyManager: - " + issuer.getName());
+            }
         }
 
-        return null;  // not implemented
+        return new String[] { serverAlias };
     }
 }
