@@ -19,6 +19,7 @@
 
 package org.dogtagpki.tomcat;
 
+import java.net.Socket;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -26,7 +27,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.X509ExtendedTrustManager;
 
 import org.mozilla.jss.CryptoManager;
 import org.mozilla.jss.NotInitializedException;
@@ -36,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import sun.security.x509.X509CertImpl;
 
-public class JSSTrustManager implements X509TrustManager {
+public class JSSTrustManager extends X509ExtendedTrustManager {
 
     final static Logger logger = LoggerFactory.getLogger(JSSTrustManager.class);
 
@@ -130,7 +132,7 @@ public class JSSTrustManager implements X509TrustManager {
     @Override
     public void checkClientTrusted(X509Certificate[] certChain, String authType) throws CertificateException {
 
-        logger.debug("JSSTrustManager: checkClientTrusted(" + authType + "):");
+        logger.debug("JSSTrustManager: checkClientTrusted(" + certChain.length + ", " + authType + "):");
 
         try {
             checkCertChain(certChain, CLIENT_AUTH_OID);
@@ -144,6 +146,24 @@ public class JSSTrustManager implements X509TrustManager {
             logger.warn("JSSTrustManager: Unable to validate certificate: " + e);
             throw new CertificateException(e);
         }
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] certChain, String authType, Socket socket)
+            throws CertificateException {
+
+        logger.debug("JSSTrustManager: checkClientTrusted(" + certChain.length + ", " + authType + ", " + socket + "):");
+
+        checkClientTrusted(certChain, authType);
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] certChain, String authType, SSLEngine engine)
+            throws CertificateException {
+
+        logger.debug("JSSTrustManager: checkClientTrusted(" + certChain.length + ", " + authType + ", " + engine + "):");
+
+        checkClientTrusted(certChain, authType);
     }
 
     @Override
@@ -163,6 +183,24 @@ public class JSSTrustManager implements X509TrustManager {
             logger.warn("JSSTrustManager: Unable to validate SSL server certificate: " + e);
             throw new CertificateException(e);
         }
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] certChain, String authType, Socket socket)
+            throws CertificateException {
+
+        logger.debug("JSSTrustManager: checkServerTrusted(" + certChain.length + ", " + authType + ", " + socket + "):");
+
+        checkServerTrusted(certChain, authType);
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] certChain, String authType, SSLEngine engine)
+            throws CertificateException {
+
+        logger.debug("JSSTrustManager: checkServerTrusted(" + certChain.length + ", " + authType + ", " + engine + "):");
+
+        checkServerTrusted(certChain, authType);
     }
 
     @Override
