@@ -101,12 +101,6 @@
   <property name="commons-logging.jar" value="${jar.home}/commons-logging-api.jar" />
   <property name="slf4j-api.jar" value="${jar.home}/slf4j/slf4j-api.jar" />
 
-  <property name="tomcat.home" value="/usr/share/tomcat" />
-  <property name="catalina.jar" value="${tomcat.home}/lib/catalina.jar" />
-  <property name="tomcat-api.jar" value="${tomcat.home}/lib/tomcat-api.jar" />
-  <property name="tomcat-coyote.jar" value="${tomcat.home}/lib/tomcat-coyote.jar" />
-  <property name="tomcat-juli.jar" value="${tomcat.home}/bin/tomcat-juli.jar" />
-
   <property name="jss.home" value="${jnidir}" />
   <!-- This property is set to '/dirsec' when built on rhel4 -->
   <property name="dirsec" value="" />
@@ -118,10 +112,6 @@
   -->
   <path id="classpath">
     <pathelement location="${jss.jar}"/>
-    <pathelement location="${catalina.jar}"/>
-    <pathelement location="${tomcat-api.jar}"/>
-    <pathelement location="${tomcat-coyote.jar}"/>
-    <pathelement location="${tomcat-juli.jar}"/>
     <pathelement location="${commons-logging.jar}"/>
     <pathelement location="${commons-lang3.jar}"/>
     <pathelement location="${slf4j-api.jar}"/>
@@ -228,7 +218,8 @@
     <mkdir dir="${build.jars}"/>
     <jar jarfile="${build.jars}/tomcatjss.jar">
       <fileset dir="${build.classes}">
-        <include name="org/**" />
+        <include name="org/dogtagpki/tomcat/**" />
+        <include name="org/apache/tomcat/util/net/jss/**" />
       </fileset>
     </jar>
   </target>

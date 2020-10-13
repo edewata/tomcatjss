@@ -61,23 +61,23 @@ BuildRequires:    jss >= 4.7.0
 %endif
 
 # Tomcat
-%if 0%{?rhel} && 0%{?rhel} <= 7
-BuildRequires:    tomcat >= 7.0.69
-%else
-%if 0%{?fedora} && 0%{?fedora} <= 27
-BuildRequires:    tomcat >= 8.0.49
-%else
-%if 0%{?fedora} && 0%{?fedora} <= 28
-BuildRequires:    tomcat >= 1:8.5.23
-%else
-%if 0%{?rhel}
-BuildRequires:    pki-servlet-engine >= 1:9.0.7
-%else
-BuildRequires:    tomcat >= 1:9.0.7
-%endif
-%endif
-%endif
-%endif
+# _if 0_{?rhel} && 0_{?rhel} <= 7
+# BuildRequires:    tomcat >= 7.0.69
+# _else
+# _if 0_{?fedora} && 0_{?fedora} <= 27
+# BuildRequires:    tomcat >= 8.0.49
+# _else
+# _if 0_{?fedora} && 0_{?fedora} <= 28
+# BuildRequires:    tomcat >= 1:8.5.23
+# else
+# _if 0_{?rhel}
+# BuildRequires:    pki-servlet-engine >= 1:9.0.7
+# _else
+# BuildRequires:    tomcat >= 1:9.0.7
+# _endif
+# _endif
+# _endif
+# _endif
 
 ################################################################################
 # Runtime Dependencies
@@ -152,13 +152,14 @@ Services (NSS).
 ################################################################################
 
 # get Tomcat <major>.<minor> version number
-tomcat_version=`/usr/sbin/tomcat version | sed -n 's/Server number: *\([0-9]\+\.[0-9]\+\).*/\1/p'`
+# tomcat_version=`/usr/sbin/tomcat version | sed -n 's/Server number: *\([0-9]\+\.[0-9]\+\).*/\1/p'`
 
-if [ $tomcat_version == "9.0" ]; then
-    app_server=tomcat-8.5
-else
-    app_server=tomcat-$tomcat_version
-fi
+# if [ $tomcat_version == "9.0" ]; then
+#     app_server=tomcat-8.5
+# else
+#     app_server=tomcat-$tomcat_version
+# fi
+app_server=tomcat-8.5
 
 ant -f build.xml \
     -Dversion=%{version} \
