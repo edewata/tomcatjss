@@ -51,9 +51,9 @@ Source:           https://github.com/dogtagpki/tomcatjss/archive/v%{version}%{?p
 # Java
 ################################################################################
 
-%define java_devel java-17-openjdk-devel
-%define java_headless java-17-openjdk-headless
-%define java_home %{_jvmdir}/jre-17-openjdk
+%define java_devel java-1.8.0-openjdk-devel
+%define java_headless java-1.8.0-openjdk-headless
+%define java_home %{_jvmdir}/java-1.8.0-openjdk
 
 ################################################################################
 # Build Dependencies
@@ -144,13 +144,12 @@ Services (NSS).
 %build
 ################################################################################
 
-export JAVA_HOME=%{java_home}
-
 ./build.sh \
     %{?_verbose:-v} \
     --name=%{product_id} \
     --work-dir=%{_vpath_builddir} \
     --version=%{version} \
+    --java-home=%{java_home} \
     --jni-dir=%{_jnidir} \
     dist
 

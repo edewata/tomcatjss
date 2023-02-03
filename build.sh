@@ -36,6 +36,7 @@ usage() {
     echo "Options:"
     echo "    --name=<name>          Package name (default: $NAME)."
     echo "    --work-dir=<path>      Working directory (default: $WORK_DIR)"
+    echo "    --java-home=<path>     Java home"
     echo "    --jni-dir=<path>       JNI directory (default: $JNI_DIR)"
     echo "    --java-dir=<path>      Java directory (default: $JAVA_DIR)"
     echo "    --doc-dir=<path>       Documentation directory (default: $DOC_DIR)"
@@ -172,6 +173,9 @@ while getopts v-: arg ; do
         work-dir=?*)
             WORK_DIR="$(readlink -f "$LONG_OPTARG")"
             ;;
+        java-home=?*)
+            JAVA_HOME=$(readlink -f "$LONG_OPTARG")
+            ;;
         jni-dir=?*)
             JNI_DIR=$(readlink -f "$LONG_OPTARG")
             ;;
@@ -219,7 +223,8 @@ while getopts v-: arg ; do
         '')
             break # "--" terminates argument processing
             ;;
-        name* | work-dir* | jni-dir* | java-dir* | doc-dir* | install-dir* | \
+        name* | work-dir* | \
+        java-home* | jni-dir* | java-dir* | doc-dir* | install-dir* | \
         source-tag* | spec* | version* | release* | dist*)
             echo "ERROR: Missing argument for --$OPTARG option" >&2
             exit 1
@@ -248,6 +253,7 @@ fi
 if [ "$DEBUG" = true ] ; then
     echo "NAME: $NAME"
     echo "WORK_DIR: $WORK_DIR"
+    echo "JAVA_HOME: $JAVA_HOME"
     echo "JNI_DIR: $JNI_DIR"
     echo "JAVA_DIR: $JAVA_DIR"
     echo "DOC_DIR: $DOC_DIR"
@@ -302,6 +308,10 @@ if [ "$BUILD_TARGET" = "dist" ] ; then
         echo "Tomcat: $TOMCAT_VERSION"
     fi
 
+    if [ "$JAVA_HOME" != "" ] ; then
+        export JAVA_HOME
+    fi
+
     OPTIONS=()
 
     if [ "$VERBOSE" = "true" ] ; then
@@ -310,6 +320,7 @@ if [ "$BUILD_TARGET" = "dist" ] ; then
 
     OPTIONS+=(-f "$SRC_DIR/build.xml")
     OPTIONS+=(-Dversion="$VERSION")
+
     OPTIONS+=(-Djnidir="$JNI_DIR")
     OPTIONS+=(-Dsrc.dir="tomcat-$TOMCAT_VERSION")
     OPTIONS+=(-Dbuild.dir="$WORK_DIR")
