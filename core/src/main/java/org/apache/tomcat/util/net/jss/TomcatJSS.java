@@ -75,7 +75,7 @@ public class TomcatJSS implements SSLSocketListener {
     boolean requireClientAuth;
     boolean wantClientAuth;
 
-    boolean enableOCSP;
+    boolean enableRevocationCheck;
     String ocspResponderURL;
     String ocspResponderCertNickname;
     int ocspCacheSize = 1000; // entries
@@ -170,12 +170,12 @@ public class TomcatJSS implements SSLSocketListener {
         return wantClientAuth;
     }
 
-    public boolean getEnableOCSP() {
-        return enableOCSP;
+    public boolean getEnableRevocationCheck() {
+        return enableRevocationCheck;
     }
 
-    public void setEnableOCSP(boolean enableOCSP) {
-        this.enableOCSP = enableOCSP;
+    public void setEnableRevocationCheck(boolean enableRevocationCheck) {
+        this.enableRevocationCheck = enableRevocationCheck;
     }
 
     public String getOcspResponderURL() {
@@ -255,7 +255,7 @@ public class TomcatJSS implements SSLSocketListener {
 
         String enableOCSP = config.getProperty("enableOCSP");
         if (enableOCSP != null)
-            setEnableOCSP(Boolean.parseBoolean(enableOCSP));
+            setEnableRevocationCheck((Boolean.parseBoolean(enableOCSP)));
 
         String ocspResponderURL = config.getProperty("ocspResponderURL");
         if (ocspResponderURL != null)
@@ -306,31 +306,35 @@ public class TomcatJSS implements SSLSocketListener {
                 document, XPathConstants.NODE);
 
         String certDb = connector.getAttribute("certdbDir");
-        if (certDb != null)
+        if (StringUtils.isNotEmpty(certDb))
             setCertdbDir(certDb);
 
         String passwordClass = connector.getAttribute("passwordClass");
-        if (passwordClass != null)
+        if (StringUtils.isNotEmpty(passwordClass))
             setPasswordClass(passwordClass);
 
         String passwordFile = connector.getAttribute("passwordFile");
-        if (passwordFile != null)
+        if (StringUtils.isNotEmpty(passwordFile))
             setPasswordFile(passwordFile);
 
         String serverCertNickFile = connector.getAttribute("serverCertNickFile");
-        if (serverCertNickFile != null)
+        if (StringUtils.isNotEmpty(serverCertNickFile))
             setServerCertNickFile(serverCertNickFile);
 
         String enableOCSP = connector.getAttribute("enableOCSP");
-        if (enableOCSP != null)
-            setEnableOCSP(Boolean.parseBoolean(enableOCSP));
+        if (StringUtils.isNotEmpty(enableOCSP))
+            setEnableRevocationCheck(Boolean.parseBoolean(enableOCSP));
+
+        String enableRevocationCheck = connector.getAttribute("enableRevocationCheck");
+        if (StringUtils.isNotEmpty(enableRevocationCheck))
+            setEnableRevocationCheck(Boolean.parseBoolean(enableRevocationCheck));
 
         String ocspResponderURL = connector.getAttribute("ocspResponderURL");
-        if (ocspResponderURL != null)
+        if (StringUtils.isNotEmpty(ocspResponderURL))
             setOcspResponderURL(ocspResponderURL);
 
         String ocspResponderCertNickname = connector.getAttribute("ocspResponderCertNickname");
-        if (ocspResponderCertNickname != null)
+        if (StringUtils.isNotEmpty(ocspResponderCertNickname))
             setOcspResponderCertNickname(ocspResponderCertNickname);
 
         String ocspCacheSize = connector.getAttribute("ocspCacheSize");
@@ -440,7 +444,7 @@ public class TomcatJSS implements SSLSocketListener {
         logger.debug("wantClientAuth: " + wantClientAuth);
 
         if (requireClientAuth || wantClientAuth) {
-            configureOCSP();
+            configureRevocationCheck();
         }
 
         // 12 hours = 43200 seconds
@@ -522,12 +526,12 @@ public class TomcatJSS implements SSLSocketListener {
         return null;
     }
 
-    public void configureOCSP() throws Exception {
+    public void configureRevocationCheck() throws Exception {
 
-        logger.info("configuring OCSP");
+        logger.info("configuring Revocation Check");
 
-        logger.debug("enableOCSP: " + enableOCSP);
-        if (!enableOCSP) {
+        logger.debug("enableRevocationCheck: " + enableRevocationCheck);
+        if (!enableRevocationCheck) {
             return;
         }
 
