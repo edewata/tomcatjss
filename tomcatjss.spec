@@ -5,7 +5,7 @@ Name:             tomcatjss
 # Upstream version number:
 %global           major_version 7
 %global           minor_version 7
-%global           update_version 3
+%global           update_version 4
 
 Summary:          JSS Connector for Apache Tomcat
 URL:              http://www.dogtagpki.org/wiki/TomcatJSS
