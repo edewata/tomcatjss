@@ -21,7 +21,7 @@ jobs:
 
       - name: Cache Docker layers
         id: cache-buildx
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           key: buildx-${{ hashFiles('tomcatjss.spec') }}
           path: /tmp/.buildx-cache
@@ -63,7 +63,7 @@ jobs:
           outputs: type=docker,dest=tomcatjss-builder.tar
 
       - name: Store tomcatjss-builder image
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           key: tomcatjss-builder-${{ github.sha }}
           path: tomcatjss-builder.tar
@@ -81,7 +81,7 @@ jobs:
           outputs: type=docker,dest=tomcatjss-dist.tar
 
       - name: Store tomcatjss-dist image
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           key: tomcatjss-dist-${{ github.sha }}
           path: tomcatjss-dist.tar
@@ -99,7 +99,7 @@ jobs:
           outputs: type=docker,dest=tomcatjss-runner.tar
 
       - name: Store tomcatjss-runner image
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           key: tomcatjss-runner-${{ github.sha }}
           path: tomcatjss-runner.tar
