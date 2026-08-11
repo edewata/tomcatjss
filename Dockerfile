@@ -25,7 +25,16 @@ ARG COPR_REPO
 RUN if [ -n "$COPR_REPO" ]; then dnf copr enable -y $COPR_REPO; fi
 
 # Install Tomcat JSS runtime dependencies
-RUN dnf install -y tomcatjss \
+# Install Tomcat manually due to DNF issue on Fedora 34
+RUN mkdir /tmp/RPMS \
+    && curl -L --output-dir /tmp/RPMS -O https://kojipkgs.fedoraproject.org/packages/tomcat/9.0.39/1.fc34/noarch/tomcat-9.0.39-1.fc34.noarch.rpm \
+    && curl -L --output-dir /tmp/RPMS -O https://kojipkgs.fedoraproject.org/packages/tomcat/9.0.39/1.fc34/noarch/tomcat-lib-9.0.39-1.fc34.noarch.rpm \
+    && curl -L --output-dir /tmp/RPMS -O https://kojipkgs.fedoraproject.org/packages/tomcat/9.0.39/1.fc34/noarch/tomcat-el-3.0-api-9.0.39-1.fc34.noarch.rpm \
+    && curl -L --output-dir /tmp/RPMS -O https://kojipkgs.fedoraproject.org/packages/tomcat/9.0.39/1.fc34/noarch/tomcat-jsp-2.3-api-9.0.39-1.fc34.noarch.rpm \
+    && curl -L --output-dir /tmp/RPMS -O https://kojipkgs.fedoraproject.org/packages/tomcat/9.0.39/1.fc34/noarch/tomcat-servlet-4.0-api-9.0.39-1.fc34.noarch.rpm \
+    && dnf install -y /tmp/RPMS/* \
+    && rm -rf /tmp/RPMS \
+    && dnf install -y tomcatjss \
     && dnf remove -y jss-* --noautoremove \
     && dnf clean all \
     && rm -rf /var/cache/dnf
@@ -41,7 +50,6 @@ COPY tomcatjss.spec /root/tomcatjss/
 WORKDIR /root/tomcatjss
 
 # Install Tomcat JSS build dependencies
-RUN dnf module enable -y tomcat
 RUN dnf builddep -y --skip-unavailable --spec tomcatjss.spec
 
 ################################################################################
@@ -78,7 +86,6 @@ COPY --from=quay.io/dogtagpki/jss-dist:4.9 /root/RPMS /tmp/RPMS/
 COPY --from=tomcatjss-dist /root/RPMS /tmp/RPMS/
 
 # Install runtime packages
-RUN dnf module enable -y tomcat
 RUN dnf localinstall -y /tmp/RPMS/* \
     && dnf clean all \
     && rm -rf /var/cache/dnf \
